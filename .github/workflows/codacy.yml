@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+permissions:
+  issues: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,16 +44,12 @@ jobs:
     - name: Check for outdated dependencies
       run: |
           pip list --outdated > outdated_dependencies.txt
-    
+      
     - name: Show outdated dependencies
       run: cat outdated_dependencies.txt
 
-    - name: Security audit with pip-audit
+    - name: Audit dependencies for security issues
+      id: audit
       run: |
         pip install pip-audit
-        pip-audit || true
-  
-    - name: Upload coverage to Codacy
-      run: |
-        pip install codacy-coverage
-        coverage run -m pytest app/modules/ --ignore-glob='*selenium*'
+        pip-audit -o audit_report.json --format json || true
